@@ -1,0 +1,7 @@
+gen/
+libs/
+bin/
+.settings/
+.classpath
+.project
+bak/
