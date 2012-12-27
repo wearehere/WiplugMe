@@ -152,6 +152,32 @@ public class WiplugMeActivity extends Activity {
         getWindowManager().getDefaultDisplay().getMetrics(mdm);          
     }
     
+    @Override
+    public void onPause(){
+    	if(mconnector != null){
+    		mconnector.interrupt();
+    		mconnector = null;
+    	}    	
+    	super.onPause();
+    }
+    
+    @Override
+    public void onStop(){
+    	if(mconnector != null){
+    		mconnector.interrupt();
+    		mconnector = null;
+    	}    	
+    	super.onStop();
+    }
+
+    @Override
+    public void onDestroy(){
+    	if(mconnector != null){
+    		mconnector.interrupt();
+    		mconnector = null;
+    	}    	
+    	super.onDestroy();
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent ev){

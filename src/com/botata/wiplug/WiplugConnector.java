@@ -119,7 +119,11 @@ public class WiplugConnector extends Thread{
 			try{
 				soc = connect(addr);
 				if(soc == null){
-					sleep(1000);
+					try{
+						sleep(1000);
+					}catch(Exception e){
+						return;
+					}
 					continue;
 				}
 			}catch(Exception e){
@@ -127,17 +131,20 @@ public class WiplugConnector extends Thread{
 					sleep(2000);
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
+					return;
 				}
 				continue;
 			}
 			System.out.println("WiplugConnector Connected...");
-			Selector sel;
+			Selector sel = null;
 			try {
 					sel = Selector.open();
 					soc.register(sel, SelectionKey.OP_READ|SelectionKey.OP_WRITE);
 					while(true){
 						if(this.isInterrupted()){
 							System.out.println("Connector be stopped");
+							soc.close();
+							sel.close();
 							return;							
 						}
 						
@@ -145,15 +152,13 @@ public class WiplugConnector extends Thread{
 							sleep(50);
 						} catch (InterruptedException e1) {
 							e1.printStackTrace();
+							sel.close();
+							soc.close();
+							return;
 						}
 
 						int n = sel.select();
 						if(n <= 0){
-							try {
-								sleep(1);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}							
 							continue;
 						}
 						SelectionKey sk = sel.selectedKeys().iterator().next();
@@ -168,11 +173,13 @@ public class WiplugConnector extends Thread{
 							if(ret < 0){
 								System.out.println("socket read error");
 								sic.close();
+								sel.close();
 								break;
 							}
 							else if(ret == 0){
 								System.out.println("socket closed");
 								sic.close();
+								sel.close();
 								break;
 							}
 							//read some data
@@ -194,6 +201,7 @@ public class WiplugConnector extends Thread{
 								int ret = sic.write(buf);
 								if(ret < 0){
 									System.out.println("socket write error");
+									sel.close();
 									break;
 								}
 								//System.out.println("socket write:"+ret);
@@ -203,17 +211,19 @@ public class WiplugConnector extends Thread{
 						//} 
 					}
 				} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				try {
-					soc.close();
-				} catch (IOException e1) {
 					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}				
-		}
-	} //end run		
+					e.printStackTrace();
+					try {
+						soc.close();
+						if(sel != null)
+							sel.close();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}				
+			}
+		} //end run		
 
 	public static void main(String args[]) {
 		WiplugConnector connector = new WiplugConnector();
