@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
-//import android.util.Log;
 
 public class WiplugCmd{
 		
@@ -36,14 +35,6 @@ public class WiplugCmd{
 			//System.out.println("[toBuffer]"+key+"=>"+mparas.get(key));
 		}
 		
-//		for(Iterator<String> i = mparas.keySet().iterator(); i.hasNext();){
-//			String key = i.next();
-//			String value = mparas.get(key);
-//			if(key.equals("Content-Length"))
-//				continue;
-//			outcmdstr += key+":"+value+"\r\n";
-//			//System.out.println(key+"=>"+value);
-//		}
 		if(mcontent == null)
 			outcmdstr += "Content-Length:0\r\n";
 		else

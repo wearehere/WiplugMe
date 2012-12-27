@@ -15,9 +15,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -27,14 +25,11 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
-import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 public class WiplugMeActivity extends Activity {
@@ -44,7 +39,6 @@ public class WiplugMeActivity extends Activity {
     private Handler mwiplugcmdhandler = null;
 	
     protected WiplugMDnsService mwiplugmdnsservice = null;
-    //protected Spinner mspinnerdevice = null;
     protected LinearLayout mrootlayout = null;
     protected TextView mtextselecteddevice = null;
     protected Runnable mupdaterunnable = null;
@@ -80,10 +74,8 @@ public class WiplugMeActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mwiplugmdnsservice = new WiplugMDnsService(this.getApplicationContext(), "_wiplug._tcp.local.");
-        //mwiplugmdnsservice.startBrowse();
         mwiplugmdnsservice.start();
         
-        //mspinnerdevice = (Spinner) this.findViewById(R.id.spinnerDevice);
         mrootlayout = (LinearLayout) this.findViewById(R.id.rootLayout);
         mtextselecteddevice = (TextView) this.findViewById(R.id.textViewSelectedDevice);
         mtextstus = (TextView) this.findViewById(R.id.textStus);
@@ -120,17 +112,7 @@ public class WiplugMeActivity extends Activity {
         		mupdatedevicehandler.postDelayed(mupdaterunnable, 1000);
 			}
         };
-        mupdatedevicehandler.postDelayed(mupdaterunnable, 1000);
-        
-//        //---
-//        mimgplayctrl.setOnTouchListener(new OnTouchListener(){
-//
-//			@Override
-//			public boolean onTouch(View arg0, MotionEvent ev) {
-//				return MainActivity.this.onTouchEvent(ev);
-//			}
-//        	
-//        });
+        mupdatedevicehandler.postDelayed(mupdaterunnable, 1000);        
         
         mimgplayctrl.setOnClickListener(new OnClickListener(){
 
@@ -164,23 +146,7 @@ public class WiplugMeActivity extends Activity {
         
         mwipluggesture = new WiplugGesture();
         mgesturedector = new GestureDetector(mwipluggesture);
-        mtextfloat = (TextView) this.findViewById(R.id.textViewfloat);
-        //mrootlayout.setOnTouchListener(new WiplugGesture());
-//        mtextfloat = new FloatText(this);        
-//        mtextfloat.setText("00:00");
-//        mtextfloat.setTextSize(24);
-//        //mtextfloat.setBackgroundResource(android.R.color.transparent);
-//        mtextfloat.setVisibility(View.INVISIBLE);
-//        
-//        WindowManager wm = (WindowManager)getApplicationContext().getSystemService("window");
-//        WindowManager.LayoutParams param = new WindowManager.LayoutParams();
-//        param.alpha = 0;
-//        param.type = WindowManager.LayoutParams.TYPE_PHONE;
-//        param.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-//        param.width = 120;
-//        param.height = 40;
-//        param.gravity = Gravity.LEFT|Gravity.TOP;
-//        wm.addView(mtextfloat, param);        
+        mtextfloat = (TextView) this.findViewById(R.id.textViewfloat);     
         
         mdm = new DisplayMetrics();   
         getWindowManager().getDefaultDisplay().getMetrics(mdm);          
@@ -229,41 +195,7 @@ public class WiplugMeActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_main, menu);
         return true;
-    }
-    
-//    protected void initDeviceSpinner(){
-//        mspinnerdevice.setOnItemSelectedListener(new Spinner.OnItemSelectedListener(){ 
-//            public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) { 
-//                // TODO Auto-generated method stub 
-//                /* 将所选mySpinner 的值带入myTextView 中*/ 
-//            	mtextstus.setText("您选择的是："+ mdevicelistadapter.getItem(arg2)); 
-//                /* 将mySpinner 显示*/ 
-//                arg0.setVisibility(View.VISIBLE); 
-//            } 
-//            public void onNothingSelected(AdapterView<?> arg0) { 
-//                // TODO Auto-generated method stub 
-//            	mtextstus.setText("NONE"); 
-//                arg0.setVisibility(View.VISIBLE); 
-//            } 
-//        }); 
-//        /*下拉菜单弹出的内容选项触屏事件处理*/ 
-////        mspinnerdevice.setOnTouchListener(new Spinner.OnTouchListener(){ 
-////            public boolean onTouch(View v, MotionEvent event) { 
-////                // TODO Auto-generated method stub 
-////                /* 将mySpinner 隐藏，不隐藏也可以，看自己爱好*/ 
-////                v.setVisibility(View.INVISIBLE); 
-////                return false; 
-////            } 
-////        }); 
-//        /*下拉菜单弹出的内容选项焦点改变事件处理*/ 
-//        mspinnerdevice.setOnFocusChangeListener(new Spinner.OnFocusChangeListener(){        
-//            public void onFocusChange(View v, boolean hasFocus) { 
-//            // TODO Auto-generated method stub 
-//                v.setVisibility(View.VISIBLE); 
-//            } 
-//            });          	
-//    	
-//    }
+    }    
     
 	
     protected void handleWiplugCmd(WiplugCmd command){
@@ -408,9 +340,6 @@ public class WiplugMeActivity extends Activity {
 	
 	//---------------------------------
 	public class WiplugGesture implements OnGestureListener{
-
-		final int FLING_MIN_DISTANCE = 10;
-		final int FLING_MIN_VELOCITY = 10;
 		
 		public int mediaduration = 0;
 		public int mediaplaypos = 0;
@@ -431,24 +360,6 @@ public class WiplugMeActivity extends Activity {
 			// e2：最后一个ACTION_MOVE MotionEvent
 			// velocityX：X轴上的移动速度，像素/秒
 			// velocityY：Y轴上的移动速度，像素/秒
-			// 触发条件 ：
-			// X轴的坐标位移大于FLING_MIN_DISTANCE，且移动速度大于FLING_MIN_VELOCITY个像素/秒			
-			
-//			float percent = calcPercent((int)e1.getX(), (int)e2.getX(), 20, mdm.widthPixels-20);
-//			String showtime = calcuShowMediaTime(percent);			
-			//Toast.makeText(MainActivity.this, "Fling:"+showtime, Toast.LENGTH_SHORT).show();
-			//Toast.makeText(MainActivity.this, "Fling:"+String.valueOf(e2.getX()), Toast.LENGTH_SHORT).show();
-//			if (e1.getX() - e2.getX() > FLING_MIN_DISTANCE
-//				       && Math.abs(velocityX) > FLING_MIN_VELOCITY) {
-//				    // Fling left
-//				Toast.makeText(MainActivity.this, "Fling Left:"+String.valueOf(e2.getX()), Toast.LENGTH_SHORT).show();
-//			} else if (e2.getX() - e1.getX() > FLING_MIN_DISTANCE
-//			        && Math.abs(velocityX) > FLING_MIN_VELOCITY) {
-//			    // Fling right
-//				Toast.makeText(MainActivity.this, "Fling Right:"+String.valueOf(e2.getX()), Toast.LENGTH_SHORT).show();
-//			}
-//			mtextfloat.setVisibility(View.INVISIBLE);
-//			mtextstus.setText("seek to:"+showtime);
 			
 			return false;
 		}
@@ -506,40 +417,27 @@ public class WiplugMeActivity extends Activity {
 			mtextfloat.setVisibility(View.VISIBLE);
 			RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(120,40);
 			
-			if(e2.getX() > mdm.widthPixels - 120)
-				param.leftMargin = mdm.widthPixels - 120;
+			if(e2.getX() > mdm.widthPixels - 200)
+				param.leftMargin = mdm.widthPixels - 200;
 			else
 				param.leftMargin = (int)(e2.getX());
-			if(e2.getY() > 100)
-				param.topMargin = (int)(e2.getY()) - 100;
+			if(e2.getY() > 150)
+				param.topMargin = (int)(e2.getY()) - 150;
 			else
 				param.topMargin = 0;
 			
-			//mtextfloat.setWidth(120);
-			//mtextfloat.setHeight(90);
-			mtextfloat.setTextColor(Color.CYAN);
-			mtextfloat.setTextSize(36);			
 			float percent = calcPercent((int)e1.getX(), (int)e2.getX(), 20, mdm.widthPixels-20);
 			mseektotime = calcuShowMediaTime(percent);
 			String showtime = formatTime(mseektotime/1000);
-			mtextfloat.setText(showtime);
-			mtextfloat.setLayoutParams(param);
 			
-//	        WindowManager wm = (WindowManager)getApplicationContext().getSystemService("window");
-//	        WindowManager.LayoutParams param = new WindowManager.LayoutParams();
-//	        param.type = WindowManager.LayoutParams.TYPE_PHONE;
-//	        param.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-//	        param.width = 120;
-//	        param.height = 40;
-//	        param.gravity = Gravity.LEFT|Gravity.TOP;
-//	        param.x = (int)(e2.getX());
-//	        //if((int)(e2.getY()) > 30)
-//	        param.y = (int)(e2.getY()) - 100;
-//	        //else
-//	        //	param.y = (int)(e2.getY()) + 30;
-//	        mtextfloat.setVisibility(View.VISIBLE);
-//	        mtextfloat.setText(String.valueOf(e2.getX()));
-//	        wm.updateViewLayout(mtextfloat, param);
+			
+			mtextfloat.setTextColor(Color.CYAN);
+			mtextfloat.setTextSize(36);		
+			//mtextfloat.setGravity(Gravity.TOP);
+			param.width = RelativeLayout.LayoutParams.WRAP_CONTENT;
+			param.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+			mtextfloat.setLayoutParams(param);			
+			mtextfloat.setText(showtime);
 			return false;
 		}
 
@@ -571,4 +469,17 @@ public class WiplugMeActivity extends Activity {
 			tm = String.format("%02d:%02d", minute, second);
 		return tm;			
 	}		
+	
+	public static int dip2px(Context context, float dpValue) {
+		  final float scale = context.getResources().getDisplayMetrics().density;
+		  return (int) (dpValue * scale + 0.5f);
+		}
+
+	/**
+	* 根据手机的分辨率从 px(像素) 的单位 转成为 dp
+	*/
+	public static int px2dip(Context context, float pxValue) {
+	  final float scale = context.getResources().getDisplayMetrics().density;
+	  return (int) (pxValue / scale + 0.5f);
+	}	
 }

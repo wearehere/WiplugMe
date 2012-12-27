@@ -11,17 +11,7 @@ public class FifoByteBuffer{
 		mcachebytes = new byte[1024];
 		mreadoffset = 0;
 		mwriteoffset = 0;
-	}
-	
-//	protected void checkMoreBufLen(int morelen){
-//		if(morelen +  mwriteoffset < mcachebytes.length)
-//			return;
-//		int newlen = (int) ((morelen + mwriteoffset)/2.0);
-//		newlen *= 4;
-//		byte[] newbb = new byte[newlen];
-//		System.arraycopy(mcachebytes, 0, newbb, 0, mwriteoffset);
-//		mcachebytes = newbb;
-//	}
+	}	
 	
 	protected void checkMoreBufLen(int morelen){
 		if(morelen +  mwriteoffset < mcachebytes.length)
