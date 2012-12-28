@@ -72,12 +72,13 @@ public class WiplugMDnsService extends Thread{
     }
 
 	public void startBrowse(){
-        android.net.wifi.WifiManager wifi = (android.net.wifi.WifiManager)mcontext.getSystemService(android.content.Context.WIFI_SERVICE);
-        lock = wifi.createMulticastLock("mylockthereturn");
-        lock.setReferenceCounted(true);
-        lock.acquire();
         try {
-            jmdns = JmDNS.create();
+	        android.net.wifi.WifiManager wifi = (android.net.wifi.WifiManager)mcontext.getSystemService(android.content.Context.WIFI_SERVICE);
+	        lock = wifi.createMulticastLock("mylockthereturn");
+	        lock.setReferenceCounted(true);
+	        lock.acquire();
+
+	        jmdns = JmDNS.create();
             jmdns.addServiceListener(mtype, listener = new javax.jmdns.ServiceListener() {
 
                 public void serviceResolved(ServiceEvent ev) {
@@ -126,23 +127,27 @@ public class WiplugMDnsService extends Thread{
 	}
 	
 	public void stopBrowse(){
-    	if (jmdns != null) {
-            if (listener != null) {
-                jmdns.removeServiceListener(mtype, listener);
-                listener = null;
-            }
-            //jmdns.unregisterAllServices();
-            try {
-                jmdns.close();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            jmdns = null;
-    	}
-    	//repo.stop();
-        //s.stop();
-        lock.release();		
+		try{
+	    	if (jmdns != null) {
+	            if (listener != null) {
+	                jmdns.removeServiceListener(mtype, listener);
+	                listener = null;
+	            }
+	            //jmdns.unregisterAllServices();
+	            try {
+	                jmdns.close();
+	            } catch (IOException e) {
+	                // TODO Auto-generated catch block
+	                e.printStackTrace();
+	            }
+	            jmdns = null;
+	    	}
+	    	//repo.stop();
+	        //s.stop();
+	        lock.release();		
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	
 }

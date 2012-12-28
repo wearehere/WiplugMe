@@ -7,6 +7,9 @@ import java.util.Set;
 
 import com.botata.wiplug.WiplugCmd;
 import com.botata.wiplug.WiplugConnector;
+
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -73,8 +76,6 @@ public class WiplugMeActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mwiplugmdnsservice = new WiplugMDnsService(this.getApplicationContext(), "_wiplug._tcp.local.");
-        mwiplugmdnsservice.start();
         
         mrootlayout = (LinearLayout) this.findViewById(R.id.rootLayout);
         mtextselecteddevice = (TextView) this.findViewById(R.id.textViewSelectedDevice);
@@ -87,6 +88,12 @@ public class WiplugMeActivity extends Activity {
         mimgvideoavailable = (ImageView) this.findViewById(R.id.imageVideoInd);
         mimgplayctrl = (ImageView)this.findViewById(R.id.imageController);
         
+        boolean bwire = checkWirelessConnected();
+        if(!bwire){
+        	mtextstus.setText("Connect Wireless and Restart.");
+        	return;
+        }
+        
         mwiplugcmdhandler = new Handler(){
         	public void handleMessage(Message msg){
         		WiplugCmd cmd = (WiplugCmd) msg.obj;
@@ -94,6 +101,9 @@ public class WiplugMeActivity extends Activity {
         	}
         };
         
+        mwiplugmdnsservice = new WiplugMDnsService(this.getApplicationContext(), "_wiplug._tcp.local.");
+        mwiplugmdnsservice.start();
+
         //initDeviceSpinner();
 		mactivethread = new ActivityThread();
 		mactivethread.start();
@@ -507,5 +517,14 @@ public class WiplugMeActivity extends Activity {
 	public static int px2dip(Context context, float pxValue) {
 	  final float scale = context.getResources().getDisplayMetrics().density;
 	  return (int) (pxValue / scale + 0.5f);
+	}	
+	
+	protected boolean checkWirelessConnected()
+	{
+		ConnectivityManager conMan = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo.State wifistate = conMan.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState();
+		if(wifistate == NetworkInfo.State.CONNECTED)
+			return true;
+		return false;			
 	}	
 }
