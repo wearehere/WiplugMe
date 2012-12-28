@@ -1,8 +1,13 @@
 WiplugMe
 ========
 
-this is the Wiplug Device Remote controller on Android
+This is the Wiplug Device Remote controller on Android
 
-when wifi connected, it will search the device
+When wifi connected, it will search the device
 
-when device connected, it can control wiplug device now
+When device connected, it can control wiplug device now
+
+The earliest version of wiplug device that WiplugMe support is 1.2.1301010000(NOT published yet)
+
+This version support video pause/resume/seek.
+
