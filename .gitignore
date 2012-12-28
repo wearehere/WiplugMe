@@ -1,7 +1,7 @@
 gen/
-libs/
 bin/
-.settings/
-.classpath
-.project
+.assets/
 bak/
+ic_launcher-web.png
+lint.xml
+proguard-project.txt
