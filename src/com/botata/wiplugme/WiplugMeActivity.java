@@ -70,6 +70,7 @@ public class WiplugMeActivity extends Activity {
 	protected String maudiostus = "";
 	protected String mvideoduration = "";
 	protected String mvideoposition = "";
+	protected String mmediavolumn = "";
     	
 	
     @Override
@@ -198,10 +199,14 @@ public class WiplugMeActivity extends Activity {
     @Override
     public boolean onTouchEvent(MotionEvent ev){
     	//check mvideostus
-    	if(this.mvideoduration.isEmpty() || this.mvideoposition.isEmpty())
-    		return false;
-    	mwipluggesture.mediaduration = Integer.valueOf(this.mvideoduration);
-    	mwipluggesture.mediaplaypos = Integer.valueOf(this.mvideoposition);
+//    	if(this.mvideoduration.isEmpty() || this.mvideoposition.isEmpty())
+//    		return false;
+    	if(!this.mvideoduration.isEmpty())
+    		mwipluggesture.mediaduration = Integer.valueOf(this.mvideoduration);
+    	if(!this.mvideoposition.isEmpty())
+    		mwipluggesture.mediaplaypos = Integer.valueOf(this.mvideoposition);
+    	if(!this.mmediavolumn.isEmpty())
+    		mwipluggesture.mediavolumn = Integer.valueOf(this.mmediavolumn);
     	
 //    	mwipluggesture.mediaduration = 1100000;
 //    	mwipluggesture.mediaplaypos = 220000;
@@ -227,8 +232,21 @@ public class WiplugMeActivity extends Activity {
 				}
     			
     			this.mwipluggesture.mseektotime = -1;    			
-    			mtextfloat.setVisibility(View.INVISIBLE);
+    		}else if(this.mwipluggesture.mupdatevolumn != -1){
+    			this.mtextstus.setText("Change Volumn to:"+String.valueOf(this.mwipluggesture.mupdatevolumn));
+				WiplugCmd cmd = new WiplugCmd();
+				cmd.maction = "/setparam";
+				cmd.mparas.put("X-WiPlug-Type", "volumn");
+				cmd.mparas.put("X-WiPlug-Value", String.valueOf(this.mwipluggesture.mupdatevolumn));
+				cmd.mparas.put("X-WiPlug-Adapter", "wiplug");
+				
+				if(mconnector != null){
+					mconnector.putSendCmd(cmd);
+				}
+    			
+    			this.mwipluggesture.mupdatevolumn = -1;    			
     		}
+			mtextfloat.setVisibility(View.INVISIBLE);
     	}
     	return false;
     }
@@ -292,6 +310,7 @@ public class WiplugMeActivity extends Activity {
     	
     	String duration = null;
     	String playpos = null;
+    	String volumn = null;
     	
     	if(!mvideostus.isEmpty()){
     		duration = command.mparas.get("X-WiPlug-Duration");
@@ -300,6 +319,8 @@ public class WiplugMeActivity extends Activity {
     		duration = command.mparas.get("X-WiPlug-AudioDuration");
     		playpos = command.mparas.get("X-WiPlug-AudioPosition");    		
     	}
+    	
+    	volumn = command.mparas.get("X-WiPlug-Volumn"); 
     	
 		if(duration != null){
 			mvideoduration = duration;
@@ -310,6 +331,9 @@ public class WiplugMeActivity extends Activity {
 			mvideoposition = playpos;
 			int ipos = Integer.parseInt(playpos);
 			this.mmediaplaypos.setText(formatTime(ipos/1000));
+		}
+		if(volumn != null){
+			mmediavolumn = volumn;
 		}
 	}
         
@@ -410,8 +434,10 @@ public class WiplugMeActivity extends Activity {
 		
 		public int mediaduration = 0;
 		public int mediaplaypos = 0;
+		public int mediavolumn = 0;
 		
 		public int mseektotime = -1;
+		public int mupdatevolumn = -1;
 				
 		@Override
 		public boolean onDown(MotionEvent arg0) {
@@ -459,13 +485,21 @@ public class WiplugMeActivity extends Activity {
 		
 		
 		protected int calcuShowMediaTime(float percent){
-			int showtime = mediaplaypos;
+			return calcuValueByPercent(percent, mediaduration, mediaplaypos);
+		}
+		
+		protected int calcuVolumn(float percent){
+			return calcuValueByPercent(percent, 100, mediavolumn);
+		}
+		
+		protected int calcuValueByPercent(float percent, int maxvle, int curvle){
+			int rtnvle = mediaplaypos;
 			if(percent < 0){
-				showtime = (int) ((1+percent)*mediaplaypos);
+				rtnvle = (int) ((1+percent)*curvle);
 			}else if(percent > 0){
-				showtime = (int) (mediaplaypos + (mediaduration-mediaplaypos)*percent);
+				rtnvle = (int) (curvle + (maxvle-curvle)*percent);
 			}
-			return showtime;
+			return rtnvle;			
 		}
 		
 
@@ -473,13 +507,21 @@ public class WiplugMeActivity extends Activity {
 		public boolean onScroll(MotionEvent e1, MotionEvent e2, float velocityX,
 				float velocityY) {
 			
-			if(e1.getX() < 20 || e1.getX() > mdm.widthPixels-20)
+			if((e1.getX() < 20 || e1.getX() > mdm.widthPixels-20) 
+				|| e1.getY() < 20 || e1.getY() > mdm.heightPixels-20)
 				return false;
 			
-			if(! WiplugMeActivity.this.mvideostus.equals("playing"))
-				return false;
 			
 			mtextstus.setText("scroll:"+String.valueOf(e2.getX())+":"+String.valueOf(e2.getY()));
+			if(Math.abs(e2.getX() - e1.getX()) >= Math.abs(e2.getY() - e1.getY())){
+				//seek....
+				if(! WiplugMeActivity.this.mvideostus.equals("playing"))
+					return false;
+				if(mediaduration == 0x00)
+					return false;
+				if(mediaplaypos == 0x00)
+					return false;
+			}
 			
 			mtextfloat.setVisibility(View.VISIBLE);
 			RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(120,40);
@@ -492,19 +534,31 @@ public class WiplugMeActivity extends Activity {
 				param.topMargin = (int)(e2.getY()) - 150;
 			else
 				param.topMargin = 0;
-			
-			float percent = calcPercent((int)e1.getX(), (int)e2.getX(), 20, mdm.widthPixels-20);
-			mseektotime = calcuShowMediaTime(percent);
-			String showtime = formatTime(mseektotime/1000);
-			
-			
-			mtextfloat.setTextColor(Color.CYAN);
-			mtextfloat.setTextSize(36);		
-			//mtextfloat.setGravity(Gravity.TOP);
 			param.width = RelativeLayout.LayoutParams.WRAP_CONTENT;
 			param.height = RelativeLayout.LayoutParams.WRAP_CONTENT;
 			mtextfloat.setLayoutParams(param);			
-			mtextfloat.setText(showtime);
+			
+			if(Math.abs(e2.getX() - e1.getX()) >= Math.abs(e2.getY() - e1.getY())){
+				float percent = calcPercent((int)e1.getX(), (int)e2.getX(), 20, mdm.widthPixels-20);
+				mseektotime = calcuShowMediaTime(percent);
+				String showtime = formatTime(mseektotime/1000);				
+				
+				mtextfloat.setTextColor(Color.CYAN);
+				mtextfloat.setTextSize(36);		
+				//mtextfloat.setGravity(Gravity.TOP);
+				mtextfloat.setText(showtime);
+				
+				mupdatevolumn = -1;
+			}else{
+				//change volumn
+				float percent = calcPercent((int)e1.getY(), (int)e2.getY(), 20, mdm.heightPixels-20);
+				mupdatevolumn = calcuVolumn(-1*percent);
+				mtextfloat.setTextColor(Color.BLUE);
+				mtextfloat.setTextSize(36);		
+				mtextfloat.setText(String.valueOf(mupdatevolumn));
+				
+				mseektotime = -1;
+			}
 			return false;
 		}
 
