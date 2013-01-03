@@ -131,15 +131,21 @@ public class WiplugMeActivity extends Activity {
 			
 				String curmedia = "";
 				String curaction = "";
-				if(mvideostus.equals("playing")){				
-					curmedia = "video";
+				if(mvideostus.equals("playing")){									
 					curaction = "/pause";
-				}else if(mvideostus.equals("pause")){
 					curmedia = "video";
+				}else if(mvideostus.equals("pause")){
 					curaction = "/resume";
+					curmedia = "video";
+				}else if(maudiostus.equals("playing")){									
+					curaction = "/pause";
+					curmedia = "audio";
+				}else if(maudiostus.equals("pause")){
+					curaction = "/resume";
+					curmedia = "audio";
 				}
 				
-				if(!curmedia.isEmpty()){
+				if(!curmedia.isEmpty() && !curaction.isEmpty()){
 					WiplugCmd cmd = new WiplugCmd();
 					cmd.maction = curaction;
 					cmd.mparas.put("X-WiPlug-Type", curmedia);
@@ -233,7 +239,7 @@ public class WiplugMeActivity extends Activity {
         return true;
     }    
     
-	
+    
     protected void handleWiplugCmd(WiplugCmd command){
     	if(command.maction.equals("/status")){
     		Set<String> keys = command.mparas.keySet();
@@ -241,46 +247,71 @@ public class WiplugMeActivity extends Activity {
     			this.mimgpicavailable.setImageResource(R.drawable.pic);
     		else
     			this.mimgpicavailable.setImageResource(R.drawable.pic_1);
-    		if(keys.contains("X-WiPlug-AudioStatus"))
+    		
+    		if(keys.contains("X-WiPlug-AudioStatus")){
+    			String astus = command.mparas.get("X-WiPlug-AudioStatus");
+    			if(astus != null)
+    				maudiostus = astus;
+    			else
+    				maudiostus = "";
     			this.mimgaudioavailable.setImageResource(R.drawable.music);
-    		else
+				mvideostus = "";
+    		}else
     			this.mimgaudioavailable.setImageResource(R.drawable.music_1);
+    			
     		if(keys.contains("X-WiPlug-VideoStatus")){
     			String vstus = command.mparas.get("X-WiPlug-VideoStatus");
     			if(vstus != null){
     				mvideostus = vstus;
-    				if(vstus.equals("playing")){
-    					this.mimgplayctrl.setImageResource(R.drawable.pause);
-    					this.mimgplayctrl.setEnabled(true);
-    				}else if(vstus.equals("pause")){
-    					this.mimgplayctrl.setImageResource(R.drawable.play);
-    					this.mimgplayctrl.setEnabled(true);    					
-    				}else{
-    					this.mimgplayctrl.setImageResource(R.drawable.playgray);
-    					this.mimgplayctrl.setEnabled(false);
-    				}
     			}else{
     				mvideostus = "";
-    			}
-    			
+    			}    			
     			this.mimgvideoavailable.setImageResource(R.drawable.video);
-    			String duration = command.mparas.get("X-WiPlug-Duration");
-    			if(duration != null){
-    				mvideoduration = duration;
-    				int idur = Integer.parseInt(duration);
-    				this.mmediaduration.setText(formatTime(idur/1000));
-    			}
-    			String playpos = command.mparas.get("X-WiPlug-Position");
-    			if(playpos != null){
-    				mvideoposition = playpos;
-    				int ipos = Integer.parseInt(playpos);
-    				this.mmediaplaypos.setText(formatTime(ipos/1000));
-    			}
-    		}
-    		else
+    			maudiostus = "";
+    		}else
     			this.mimgvideoavailable.setImageResource(R.drawable.video_1);
     	}
-    }
+    		
+    	String mediastus = "";
+    	if(!mvideostus.isEmpty())
+    		mediastus = mvideostus;
+    	else if(!maudiostus.isEmpty())
+    		mediastus = maudiostus;
+    	if(!mediastus.isEmpty()){
+			if(mediastus.equals("playing")){
+				this.mimgplayctrl.setImageResource(R.drawable.pause);
+				this.mimgplayctrl.setEnabled(true);
+			}else if(mediastus.equals("pause")){
+				this.mimgplayctrl.setImageResource(R.drawable.play);
+				this.mimgplayctrl.setEnabled(true);    					
+			}else{
+				this.mimgplayctrl.setImageResource(R.drawable.playgray);
+				this.mimgplayctrl.setEnabled(false);
+			}    		
+    	}
+    	
+    	String duration = null;
+    	String playpos = null;
+    	
+    	if(!mvideostus.isEmpty()){
+    		duration = command.mparas.get("X-WiPlug-Duration");
+    		playpos = command.mparas.get("X-WiPlug-Position");
+    	}else if(!maudiostus.isEmpty()){
+    		duration = command.mparas.get("X-WiPlug-AudioDuration");
+    		playpos = command.mparas.get("X-WiPlug-AudioPosition");    		
+    	}
+    	
+		if(duration != null){
+			mvideoduration = duration;
+			int idur = Integer.parseInt(duration);
+			this.mmediaduration.setText(formatTime(idur/1000));
+		}
+		if(playpos != null){
+			mvideoposition = playpos;
+			int ipos = Integer.parseInt(playpos);
+			this.mmediaplaypos.setText(formatTime(ipos/1000));
+		}
+	}
         
     protected void updateDeviceInfo(){
     	mcurrentdevices = (HashMap<String, WiplugMdnsDevice>) mwiplugmdnsservice.malldevices.clone();
