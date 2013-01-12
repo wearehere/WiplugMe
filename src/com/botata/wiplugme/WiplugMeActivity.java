@@ -39,12 +39,12 @@ public class WiplugMeActivity extends Activity {
 
     protected android.net.wifi.WifiManager.MulticastLock lock;
     private Handler mupdatedevicehandler = new Handler();
+    private Runnable mupdaterunnable = null;
     private Handler mwiplugcmdhandler = null;
 	
     protected WiplugMDnsService mwiplugmdnsservice = null;
     protected LinearLayout mrootlayout = null;
     protected TextView mtextselecteddevice = null;
-    protected Runnable mupdaterunnable = null;
     protected TextView mtextstus = null;
     protected TextView mmediaduration = null;
     protected TextView mmediaplaypos = null;
@@ -65,6 +65,7 @@ public class WiplugMeActivity extends Activity {
 	GestureDetector mgesturedector = null;
 	WiplugGesture mwipluggesture = null;
 	DisplayMetrics mdm = null;
+	WiplugMdnsDevice mselecteddevice = null;
 	
 	protected String mvideostus = "";
 	protected String maudiostus = "";
@@ -72,7 +73,8 @@ public class WiplugMeActivity extends Activity {
 	protected String mvideoduration = "";
 	protected String mvideoposition = "";
 	protected String mmediavolumn = "";
-    	
+    
+	protected String mconnectormutex = new String();
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -111,9 +113,13 @@ public class WiplugMeActivity extends Activity {
 		mactivethread.start();
                 
         mupdaterunnable = new Runnable(){
+        	
+    		WiplugMdnsDevice mrunningdevice = null;
+        	
 			public void run() {
         		try{        			
         			updateDeviceInfo();
+        			checkConnection();
         		}catch(Exception e){
         			e.printStackTrace();
         			//TODO. when switch network, it may throw exception which unexpected.
@@ -123,8 +129,36 @@ public class WiplugMeActivity extends Activity {
         		}
         		mupdatedevicehandler.postDelayed(mupdaterunnable, 1000);
 			}
+			
+			private void checkConnection(){				
+				//synchronized(mconnectormutex){
+					if(WiplugMeActivity.this.mselecteddevice != null){
+						if(mrunningdevice == null || 
+								!mrunningdevice.devicenm.equals(WiplugMeActivity.this.mselecteddevice.devicenm)){
+							mrunningdevice = WiplugMeActivity.this.mselecteddevice;
+					    	if(mconnector != null){
+					    		mconnector.interrupt();
+					    		mconnector = null;
+					    	}						
+						}
+					}
+					
+					if(mrunningdevice == null)
+						return;
+						
+					if(mconnector == null)
+						connectDevice(mrunningdevice);
+									
+					if(!mconnector.isAlive()){
+						mtextselecteddevice.setText("");
+						mconnector = null;
+						return;
+					}		
+				//}		
+			}
         };
-        mupdatedevicehandler.postDelayed(mupdaterunnable, 1000);        
+        mupdatedevicehandler.postDelayed(mupdaterunnable, 1000);     
+        
         
         mimgplayctrl.setOnClickListener(new OnClickListener(){
 
@@ -330,6 +364,9 @@ public class WiplugMeActivity extends Activity {
 				this.mimgplayctrl.setImageResource(R.drawable.playgray);
 				this.mimgplayctrl.setEnabled(false);
 			}    		
+    	}else{
+			this.mimgplayctrl.setImageResource(R.drawable.playgray);
+			this.mimgplayctrl.setEnabled(false);    		
     	}
     	
     	String duration = null;
@@ -398,7 +435,8 @@ public class WiplugMeActivity extends Activity {
                 		String selectnm = mdevicelistadapter.getItem(which);
                 		WiplugMdnsDevice device = mcurrentdevices.get(selectnm);
                 		if(device != null){
-                			connectDevice(device);
+                			WiplugMeActivity.this.mselecteddevice = device;
+                			//connectDevice(device);
                 		}
                         dialog.dismiss();
                     }
@@ -428,33 +466,36 @@ public class WiplugMeActivity extends Activity {
 
 	class ActivityThread extends Thread{
 		
+		WiplugMdnsDevice mrunningdevice = null;
+		
 		public void run(){
 			while(true){				
 				if(this.isInterrupted())
 					break;
 				
-				if (mconnector == null) {
-					try {
-						sleep(1);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+				//synchronized(mconnectormutex){
+					if(mconnector != null){
+						WiplugCmd cmd = null;
+						cmd = mconnector.getRecvCmd();
+						if(cmd == null){
+							try {
+								sleep(200);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							continue;
+						}
+						Message msg= new Message();
+						msg.obj = cmd;
+						mwiplugcmdhandler.sendMessage(msg);
+						continue;
 					}
-					continue;
+				//}
+				try {
+					sleep(500);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-				
-				WiplugCmd cmd = null;
-				cmd = mconnector.getRecvCmd();
-				if(cmd == null){
-					try {
-						sleep(200);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					continue;
-				}
-				Message msg= new Message();
-				msg.obj = cmd;
-				mwiplugcmdhandler.sendMessage(msg);
 			}
 		}
 	}        
