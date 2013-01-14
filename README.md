@@ -1,7 +1,7 @@
 WiplugMe
 ========
 
-This is the Wiplug Device Remote controller on Android
+Android version: Wiplug Device Remote controller
 
 When wifi connected, it will search the device
 
