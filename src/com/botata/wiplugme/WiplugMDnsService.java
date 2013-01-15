@@ -100,7 +100,13 @@ public class WiplugMDnsService extends Thread{
                     
                     adevice.devicefullnm = fullnm;
                     adevice.deviceport = sinfo.getPort();
-                    adevice.deviceips = sinfo.getHostAddresses();
+                    
+                    String ipaddstr = sinfo.getPropertyString("deviceipaddr");
+                    if(ipaddstr != null && !ipaddstr.isEmpty()){
+                    	adevice.deviceips = ipaddstr.split(";");
+                    }else{
+                    	adevice.deviceips = sinfo.getHostAddresses();
+                    }
                     adevice.devicenm = name;
                 }
 
